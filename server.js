@@ -15,6 +15,10 @@ app.get("/", (req, res) => {
   res.send("Backend Smart Harvest running");
 });
 
+app.use("/api/users", require("./routes/userRoutes.js"));
+app.use("/api/panen", require("./routes/hasilPanenRoutes"));
+app.use("/api/permintaan", require("./routes/permintaanRoutes"));
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
