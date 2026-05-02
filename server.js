@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 const connectDB = require("./config/db");
@@ -8,6 +9,9 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve folder uploads sebagai static files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 connectDB();
 

@@ -10,6 +10,7 @@ const HasilPanenSchema = new mongoose.Schema({
   kualitas: String,
   status: String,
   tanggal: Date,
+  deskripsi: String,
 
   foto: [
     {
