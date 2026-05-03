@@ -1,35 +1,31 @@
 const HasilPanen = require("../models/HasilPanen");
 
-// TAMBAH PANEN
+// TAMBAH PANEN (Oleh Petani)
 exports.createPanen = async (req, res) => {
   try {
-    const { user_id, nama_komoditas, jumlah, harga, kualitas, status, tanggal, deskripsi } = req.body;
+    const { user_id, nama_komoditas, jumlah, kualitas, status, tanggal, deskripsi, harga, lokasi } = req.body;
     
-    // Persiapkan data
     const panenData = {
       user_id,
       nama_komoditas,
-      jumlah: parseInt(jumlah),
-      harga: parseInt(harga) || 0,
+      jumlah: Number(jumlah),
+      harga: Number(harga), // Simpan Harga
+      lokasi: lokasi,       // Simpan Lokasi
       kualitas,
-      status,
-      tanggal,
+      status: status || "Tersedia", // Jika kosong, set default Tersedia
+      tanggal: tanggal || new Date(),
       deskripsi,
       foto: [],
     };
 
-    // Jika ada file upload
     if (req.file) {
-      panenData.foto = [{
-        path: `/uploads/${req.file.filename}` // Path relatif untuk akses
-      }];
+      panenData.foto = [{ path: `/uploads/${req.file.filename}` }];
     }
 
     const data = await HasilPanen.create(panenData);
-    res.json(data);
+    res.status(201).json(data);
   } catch (err) {
-    console.error("Error Backend:", err);
-    res.status(500).json({ message: "Gagal simpan data", error: err.message });
+    res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
 

@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 // REGISTER
 exports.registerUser = async (req, res) => {
   try {
+    console.log("Data pendaftaran masuk:", req.body);
     const user = await User.create(req.body);
     res.json(user);
   } catch (err) {
@@ -21,12 +22,12 @@ exports.getUsers = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nama, email } = req.body;
+    const { nama, email, alamat } = req.body;
     
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { nama, email },
-      { new: true }
+      { nama, email, alamat },
+      { new: true },
     );
     
     if (!updatedUser) {

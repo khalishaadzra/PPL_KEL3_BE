@@ -5,10 +5,11 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   role: String,
+  alamat: String,
   created_at: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = mongoose.model("Users", UserSchema);
