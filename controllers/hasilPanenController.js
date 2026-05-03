@@ -34,8 +34,39 @@ exports.createPanen = async (req, res) => {
 
 // GET SEMUA PANEN
 exports.getPanen = async (req, res) => {
-  const data = await HasilPanen.find().populate("user_id");
-  res.json(data);
+  try {
+    const data = await HasilPanen.find().populate("user_id");
+    res.json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+// GET PANEN DENGAN KUALITAS GRADE C (UNTUK PEMULIHAN)
+exports.getPanenGradeC = async (req, res) => {
+  try {
+    const data = await HasilPanen.find({
+      $or: [
+        { kualitas: { $regex: /grade c/i } },
+        { kualitas: { $regex: /rusak/i } }
+      ]
+    }).populate("user_id");
+    res.json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+// GET PANEN DENGAN RECOVERY (UNTUK PEDAGANG)
+exports.getPanenRecovery = async (req, res) => {
+  try {
+    const data = await HasilPanen.find({
+      "recovery.jenis": { $exists: true, $ne: null }
+    }).populate("user_id");
+    res.json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
 // GET SATU PANEN BY ID
@@ -51,14 +82,29 @@ exports.getPanenById = async (req, res) => {
   }
 };
 
-// UPDATE PANEN
+// UPDATE PANEN (TERMASUK RECOVERY)
 exports.updatePanen = async (req, res) => {
   try {
     const data = await HasilPanen.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
-    );
+    ).populate("user_id");
+    res.json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+// UPDATE RECOVERY PANEN
+exports.updatePanenRecovery = async (req, res) => {
+  try {
+    const { recovery } = req.body;
+    const data = await HasilPanen.findByIdAndUpdate(
+      req.params.id,
+      { recovery },
+      { new: true }
+    ).populate("user_id");
     res.json(data);
   } catch (err) {
     res.status(500).json(err);
@@ -67,6 +113,10 @@ exports.updatePanen = async (req, res) => {
 
 // DELETE PANEN
 exports.deletePanen = async (req, res) => {
-  await HasilPanen.findByIdAndDelete(req.params.id);
-  res.json({ message: "Panen dihapus" });
+  try {
+    await HasilPanen.findByIdAndDelete(req.params.id);
+    res.json({ message: "Panen dihapus" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
