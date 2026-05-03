@@ -3,13 +3,14 @@ const HasilPanen = require("../models/HasilPanen");
 // TAMBAH PANEN
 exports.createPanen = async (req, res) => {
   try {
-    const { user_id, nama_komoditas, jumlah, kualitas, status, tanggal, deskripsi } = req.body;
+    const { user_id, nama_komoditas, jumlah, harga, kualitas, status, tanggal, deskripsi } = req.body;
     
     // Persiapkan data
     const panenData = {
       user_id,
       nama_komoditas,
       jumlah: parseInt(jumlah),
+      harga: parseInt(harga) || 0,
       kualitas,
       status,
       tanggal,
@@ -27,8 +28,8 @@ exports.createPanen = async (req, res) => {
     const data = await HasilPanen.create(panenData);
     res.json(data);
   } catch (err) {
-    console.error('Error:', err);
-    res.status(500).json(err);
+    console.error("Error Backend:", err);
+    res.status(500).json({ message: "Gagal simpan data", error: err.message });
   }
 };
 
