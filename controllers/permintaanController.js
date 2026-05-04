@@ -149,25 +149,56 @@ exports.konfirmasiPesanan = async (req, res) => {
     const { id } = req.params;
     const { tindakan } = req.body; // 'setuju' atau 'batal'
 
+    console.log(`[KONFIRMASI] ID: ${id}, Tindakan: ${tindakan}`);
+
     const permintaan = await Permintaan.findById(id);
-    if (!permintaan)
+    if (!permintaan) {
+      console.log(`[KONFIRMASI] Pesanan ${id} tidak ditemukan`);
       return res.status(404).json({ message: "Pesanan tidak ditemukan" });
+    }
+
+    console.log(`[KONFIRMASI] Pesanan ditemukan: ${permintaan.nomor_permintaan}, Matches: ${permintaan.matches?.length || 0}`);
 
     const statusAkhir = tindakan === "setuju" ? "Selesai" : "Dibatalkan";
 
     // JIKA SETUJU: Potong stok di database petani (HasilPanen)
-    if (tindakan === "setuju" && permintaan.matches.length > 0) {
-      for (let item of permintaan.matches) {
-        await HasilPanen.findByIdAndUpdate(item.hasil_panen_id, {
-          $inc: { jumlah: -item.jumlah_diambil },
-        });
+    if (tindakan === "setuju") {
+      const matchesArray = Array.isArray(permintaan.matches) ? permintaan.matches : [];
+      console.log(`[KONFIRMASI] Processing ${matchesArray.length} matches`);
+
+      if (matchesArray.length > 0) {
+        for (let item of matchesArray) {
+          if (!item || !item.hasil_panen_id) {
+            console.log(`[KONFIRMASI] WARN: Invalid match item`);
+            continue;
+          }
+
+          console.log(`[KONFIRMASI] Mengurangi stok: Panen ID ${item.hasil_panen_id}, Jumlah: -${item.jumlah_diambil} Kg`);
+          
+          const beforeUpdate = await HasilPanen.findById(item.hasil_panen_id);
+          console.log(`[KONFIRMASI] Stok sebelum: ${beforeUpdate?.jumlah || 0} Kg`);
+
+          const result = await HasilPanen.findByIdAndUpdate(
+            item.hasil_panen_id,
+            { $inc: { jumlah: -item.jumlah_diambil } },
+            { new: true }
+          );
+
+          console.log(`[KONFIRMASI] Stok sesudah: ${result?.jumlah || 0} Kg`);
+        }
+      } else {
+        console.log(`[KONFIRMASI] WARN: Tidak ada matches, stok tidak dikurangi`);
       }
     }
 
     permintaan.status = statusAkhir;
-    await permintaan.save();
+    const savedPermintaan = await permintaan.save();
+    console.log(`[KONFIRMASI] Status permintaan diubah menjadi: ${statusAkhir}`);
 
-    res.json({ message: `Pesanan berhasil ${statusAkhir}`, data: permintaan });
+    res.json({ 
+      message: `Pesanan berhasil ${statusAkhir}`, 
+      data: savedPermintaan 
+    });
   } catch (err) {
     console.error("Konfirmasi Error:", err);
     res.status(500).json({ error: err.message });
