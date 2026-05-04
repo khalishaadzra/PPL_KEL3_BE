@@ -23,6 +23,7 @@ app.use("/api/users", require("./routes/userRoutes.js"));
 app.use("/api/panen", require("./routes/hasilPanenRoutes"));
 app.use("/api/permintaan", require("./routes/permintaanRoutes"));
 app.use("/api/weather", require("./routes/weatherRoutes"));
+app.use("/api/chat", require("./routes/chatRoutes"));
 
 const PORT = process.env.PORT || 5000;
 

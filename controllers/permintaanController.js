@@ -36,7 +36,7 @@ exports.createPermintaan = async (req, res) => {
  */
 exports.getPermintaan = async (req, res) => {
   try {
-    const data = await Permintaan.find().populate("user_id", "nama alamat");
+    const data = await Permintaan.find().populate("user_id", "nama alamat email role");
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -44,11 +44,11 @@ exports.getPermintaan = async (req, res) => {
 };
 
 /**
- * 3. FUNGSI GET BY ID (Untuk HasilMatching.tsx)
+ * 3. FUNGSI GET BY ID (Untuk HasilMatching.tsx & StatusPengiriman.tsx)
  */
 exports.getPermintaanById = async (req, res) => {
   try {
-    const data = await Permintaan.findById(req.params.id);
+    const data = await Permintaan.findById(req.params.id).populate("user_id", "nama alamat email role");
     if (!data) return res.status(404).json({ message: "Data tidak ditemukan" });
     res.json(data);
   } catch (err) {
@@ -104,6 +104,7 @@ exports.matchPermintaan = async (req, res) => {
         totalTerkumpul += diambil;
         matches.push({
           hasil_panen_id: stok._id,
+          petani_id: stok.user_id?._id, // Tambahkan petani_id untuk chat
           petani_nama: stok.user_id?.nama || "Petani",
           jumlah_diambil: diambil,
           lokasi: stok.lokasi || stok.user_id?.alamat || "Lokasi tidak set",
