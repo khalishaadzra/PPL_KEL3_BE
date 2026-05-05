@@ -18,8 +18,28 @@ exports.createPanen = async (req, res) => {
       foto: [],
     };
 
+    // Debug logging: tampilkan informasi file yang diterima (jika ada)
     if (req.file) {
+      console.log("Received single file:", req.file.filename, req.file.path);
       panenData.foto = [{ path: `/uploads/${req.file.filename}` }];
+    } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      console.log("Received multiple files:", req.files.map(f=>f.filename));
+      panenData.foto = req.files.map((f) => ({ path: `/uploads/${f.filename}` }));
+    } else if (req.body && req.body.foto) {
+      // Jika client mengirim path/URL langsung di body
+      try {
+        const parsed = typeof req.body.foto === 'string' ? JSON.parse(req.body.foto) : req.body.foto;
+        if (Array.isArray(parsed)) {
+          panenData.foto = parsed.map((p) => (typeof p === 'string' ? { path: p } : p));
+        } else if (typeof parsed === 'string') {
+          panenData.foto = [{ path: parsed }];
+        }
+      } catch (e) {
+        // bukan JSON, anggap string path
+        panenData.foto = [{ path: req.body.foto }];
+      }
+    } else {
+      console.warn('No file received in createPanen request (req.file/req.files missing)');
     }
 
     const data = await HasilPanen.create(panenData);
